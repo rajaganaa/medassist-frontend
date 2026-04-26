@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedAssist AI - Intelligent Medicine Assistant</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <style>
+        :root {
+            --primary: #0ea5e9;
+            --primary-dark: #0284c7;
+            --primary-light: #e0f2fe;
+            --secondary: #06b6d4;
+            --accent: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --bg-card: #1e293b;
+            
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            
+            --border: #334155;
+            --border-light: #475569;
+            
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            
+            --radius: 12px;
+            --radius-lg: 16px;
+            --radius-full: 9999px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Layout */
+        .app-container {
+            display: flex;
+            height: 100vh;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 320px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+        
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .logo-text h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .logo-text span {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        
+        /* Section Title */
+        .section-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 12px;
+        }
+        
+        /* Upload Area */
+        .upload-section { margin-bottom: 24px; }
+        
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-lg);
+            padding: 32px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--bg-primary);
+        }
+        
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: rgba(14, 165, 233, 0.05);
+        }
+        
+        .upload-area.drag-over {
+            border-color: var(--primary);
+            background: rgba(14, 165, 233, 0.1);
+            transform: scale(1.02);
+        }
+        
+        .upload-area.has-image {
+            border-style: solid;
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.05);
+        }
+        
+        .upload-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 12px;
+            color: var(--text-muted);
+        }
+        
+        .upload-area.has-image .upload-icon { color: var(--success); }
+        
+        .upload-text {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        
+        .upload-text strong { color: var(--primary); }
+        
+        #file-input { display: none; }
+        
+        .image-preview {
+            width: 100%;
+            max-height: 120px;
+            object-fit: contain;
+            border-radius: var(--radius);
+            margin-top: 12px;
+        }
+        
+        /* Medicine Card */
+        .medicine-card {
+            background: var(--bg-primary);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-top: 16px;
+            display: none;
+        }
+        
+        .medicine-card.visible {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .medicine-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .medicine-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--success), #059669);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .medicine-name { font-weight: 600; font-size: 1rem; }
+        .medicine-brand { font-size: 0.75rem; color: var(--text-muted); }
+        
+        .medicine-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        
+        .medicine-detail { font-size: 0.75rem; }
+        .medicine-detail-label { color: var(--text-muted); }
+        .medicine-detail-value { color: var(--text-secondary); font-weight: 500; }
+        
+        /* Quick Actions */
+        .quick-actions { margin-top: auto; }
+        
+        .action-btn {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 0.875rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            margin-bottom: 8px;
+        }
+        
+        .action-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border-color: var(--border-light);
+        }
+        
+        .action-btn.danger:hover {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-primary);
+        }
+        
+        /* Chat Header */
+        .chat-header {
+            padding: 20px 32px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .chat-title { font-size: 1.125rem; font-weight: 600; }
+        .chat-subtitle { font-size: 0.75rem; color: var(--text-muted); }
+        
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            color: var(--success);
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Messages */
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        
+        .message {
+            display: flex;
+            gap: 16px;
+            max-width: 85%;
+            animation: messageIn 0.3s ease;
+        }
+        
+        @keyframes messageIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+        
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .message.assistant .message-avatar {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+        
+        .message.user .message-avatar {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+        }
+        
+        .message-content {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            padding: 16px 20px;
+            border: 1px solid var(--border);
+        }
+        
+        .message.user .message-content {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none;
+        }
+        
+        .message-text {
+            font-size: 0.9375rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+        
+        .message.user .message-text { color: white; }
+        
+        /* Tool Badges */
+        .tools-used {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+        
+        .tools-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            width: 100%;
+            margin-bottom: 4px;
+        }
+        
+        .tool-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            background: var(--bg-primary);
+            border-radius: var(--radius-full);
+            font-size: 0.6875rem;
+            font-weight: 500;
+            font-family: 'JetBrains Mono', monospace;
+            transition: all 0.2s ease;
+        }
+        
+        /* Success - Green (used for answer) */
+        .tool-badge.success {
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.5);
+            background: rgba(16, 185, 129, 0.1);
+        }
+        
+        /* Failed - Red strikethrough (tried but failed) */
+        .tool-badge.failed {
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            background: rgba(239, 68, 68, 0.05);
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+        
+        /* Not Used - Gray (not called) */
+        .tool-badge.not_used {
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            background: transparent;
+            opacity: 0.4;
+        }
+        
+        /* Tool-specific colors for success state */
+        .tool-badge.success.rag { 
+            color: var(--accent); 
+            border-color: rgba(139, 92, 246, 0.5);
+            background: rgba(139, 92, 246, 0.1);
+        }
+        .tool-badge.success.fda { 
+            color: var(--success); 
+            border-color: rgba(16, 185, 129, 0.5);
+            background: rgba(16, 185, 129, 0.1);
+        }
+        .tool-badge.success.dosage { 
+            color: var(--warning); 
+            border-color: rgba(245, 158, 11, 0.5);
+            background: rgba(245, 158, 11, 0.1);
+        }
+        .tool-badge.success.expiry { 
+            color: var(--secondary); 
+            border-color: rgba(6, 182, 212, 0.5);
+            background: rgba(6, 182, 212, 0.1);
+        }
+        .tool-badge.success.llm { 
+            color: #f472b6; 
+            border-color: rgba(244, 114, 182, 0.5);
+            background: rgba(244, 114, 182, 0.1);
+        }
+        
+        /* Typing Indicator */
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 16px;
+            padding: 0 32px;
+        }
+        
+        .typing-indicator.visible { display: flex; }
+        
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+            padding: 16px 20px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+        }
+        
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            animation: typingBounce 1.4s infinite ease-in-out;
+        }
+        
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes typingBounce {
+            0%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-6px); }
+        }
+        
+        /* Input Area */
+        .input-container {
+            padding: 24px 32px;
+            border-top: 1px solid var(--border);
+            background: var(--bg-secondary);
+        }
+        
+        .input-wrapper {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+        
+        .input-field { flex: 1; position: relative; }
+        
+        #chat-input {
+            width: 100%;
+            padding: 16px 20px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.9375rem;
+            resize: none;
+            min-height: 56px;
+            max-height: 150px;
+            transition: all 0.2s ease;
+        }
+        
+        #chat-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+        }
+        
+        #chat-input::placeholder { color: var(--text-muted); }
+        
+        .send-btn {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none;
+            border-radius: var(--radius-lg);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Welcome Message */
+        .welcome-message {
+            text-align: center;
+            padding: 60px 40px;
+            max-width: 600px;
+            margin: auto;
+        }
+        
+        .welcome-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            color: white;
+        }
+        
+        .welcome-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        
+        .welcome-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            text-align: left;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+        
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .feature-icon.purple { background: rgba(139, 92, 246, 0.1); color: var(--accent); }
+        .feature-icon.green { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .feature-icon.yellow { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+        .feature-icon.cyan { background: rgba(6, 182, 212, 0.1); color: var(--secondary); }
+        
+        .feature-text { font-size: 0.8125rem; color: var(--text-secondary); }
+        .feature-text strong {
+            display: block;
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .loading-overlay.visible { display: flex; }
+        
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--border-light); }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .app-container { flex-direction: column; }
+            .sidebar { width: 100%; max-height: 40vh; overflow-y: auto; }
+            .feature-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i data-lucide="pill" style="width: 24px; height: 24px;"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>MedAssist</h1>
+                    <span>AI-Powered Assistant</span>
+                </div>
+            </div>
+            
+            <!-- Image Upload -->
+            <div class="upload-section">
+                <div class="section-title">Medicine Image</div>
+                <div class="upload-area" id="upload-area">
+                    <i data-lucide="image-plus" class="upload-icon"></i>
+                    <p class="upload-text">
+                        <strong>Click to upload</strong> or drag & drop<br>
+                        JPG, PNG up to 10MB
+                    </p>
+                    <input type="file" id="file-input" accept="image/*">
+                    <img class="image-preview" id="image-preview" style="display: none;">
+                </div>
+                
+                <div class="medicine-card" id="medicine-card">
+                    <div class="medicine-header">
+                        <div class="medicine-icon">
+                            <i data-lucide="pill" style="width: 20px; height: 20px;"></i>
+                        </div>
+                        <div>
+                            <div class="medicine-name" id="medicine-name">-</div>
+                            <div class="medicine-brand" id="medicine-brand">-</div>
+                        </div>
+                    </div>
+                    <div class="medicine-details">
+                        <div class="medicine-detail">
+                            <div class="medicine-detail-label">Strength</div>
+                            <div class="medicine-detail-value" id="medicine-strength">-</div>
+                        </div>
+                        <div class="medicine-detail">
+                            <div class="medicine-detail-label">Form</div>
+                            <div class="medicine-detail-value" id="medicine-form">-</div>
+                        </div>
+                        <div class="medicine-detail">
+                            <div class="medicine-detail-label">Expiry</div>
+                            <div class="medicine-detail-value" id="medicine-expiry">-</div>
+                        </div>
+                        <div class="medicine-detail">
+                            <div class="medicine-detail-label">Manufacturer</div>
+                            <div class="medicine-detail-value" id="medicine-manufacturer">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <div class="section-title">Quick Actions</div>
+                <button class="action-btn" onclick="askQuestion('What is this medicine used for?')">
+                    <i data-lucide="help-circle" style="width: 18px; height: 18px;"></i>
+                    What is this used for?
+                </button>
+                <button class="action-btn" onclick="askQuestion('Is this medicine expired?')">
+                    <i data-lucide="calendar-clock" style="width: 18px; height: 18px;"></i>
+                    Check expiry status
+                </button>
+                <button class="action-btn" onclick="askQuestion('What side effects have been reported?')">
+                    <i data-lucide="alert-triangle" style="width: 18px; height: 18px;"></i>
+                    View reported side effects
+                </button>
+                <button class="action-btn danger" onclick="clearChat()">
+                    <i data-lucide="trash-2" style="width: 18px; height: 18px;"></i>
+                    Clear conversation
+                </button>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="chat-header">
+                <div>
+                    <div class="chat-title">Chat with MedAssist</div>
+                    <div class="chat-subtitle">Ask questions about your medications</div>
+                </div>
+                <div class="status-badge">
+                    <span class="status-dot"></span>
+                    AI Ready
+                </div>
+            </header>
+            
+            <div class="messages-container" id="messages-container">
+                <div class="welcome-message" id="welcome-message">
+                    <div class="welcome-icon">
+                        <i data-lucide="bot" style="width: 40px; height: 40px;"></i>
+                    </div>
+                    <h2 class="welcome-title">Welcome to MedAssist</h2>
+                    <p class="welcome-subtitle">
+                        Upload a medicine image to get started, or ask me any question about medications. 
+                        I'll use multiple AI tools to give you accurate information.
+                    </p>
+                    <div class="feature-grid">
+                        <div class="feature-item">
+                            <div class="feature-icon purple">
+                                <i data-lucide="database" style="width: 20px; height: 20px;"></i>
+                            </div>
+                            <div class="feature-text">
+                                <strong>Drug Database</strong>
+                                Search medical documents
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon green">
+                                <i data-lucide="shield-check" style="width: 20px; height: 20px;"></i>
+                            </div>
+                            <div class="feature-text">
+                                <strong>FDA Reports</strong>
+                                Real adverse event data
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon yellow">
+                                <i data-lucide="calculator" style="width: 20px; height: 20px;"></i>
+                            </div>
+                            <div class="feature-text">
+                                <strong>Dosage Calculator</strong>
+                                Weight-based dosing
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon cyan">
+                                <i data-lucide="calendar" style="width: 20px; height: 20px;"></i>
+                            </div>
+                            <div class="feature-text">
+                                <strong>Expiry Checker</strong>
+                                Validate medicine dates
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="typing-indicator" id="typing-indicator">
+                <div class="message-avatar" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white;">
+                    <i data-lucide="bot" style="width: 20px; height: 20px;"></i>
+                </div>
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+            
+            <div class="input-container">
+                <div class="input-wrapper">
+                    <div class="input-field">
+                        <textarea 
+                            id="chat-input" 
+                            placeholder="Ask about your medicine..." 
+                            rows="1"
+                            onkeydown="handleKeyDown(event)"
+                        ></textarea>
+                    </div>
+                    <button class="send-btn" id="send-btn" onclick="sendMessage()">
+                        <i data-lucide="send" style="width: 20px; height: 20px;"></i>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div style="color: var(--text-secondary);">Analyzing image...</div>
+        </div>
+    </div>
+    
+    <script>
+        // ============================================================
+        // CONFIGURATION - UPDATE THIS FOR YOUR AZURE FUNCTION URL
+        // ============================================================
+        
+        // For local development:
+        const API_BASE = 'https://medassist-api-j3ogs1.azurewebsites.net/api';
+        
+        // For Azure deployment, replace with your Function App URL:
+        // const API_BASE = 'https://medassist-api-j3ogs1.azurewebsites.net/api';  // Will be proxied by Static Web Apps
+        
+        // ============================================================
+        
+        lucide.createIcons();
+        
+        const sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        
+        const uploadArea = document.getElementById('upload-area');
+        const fileInput = document.getElementById('file-input');
+        const imagePreview = document.getElementById('image-preview');
+        const medicineCard = document.getElementById('medicine-card');
+        const messagesContainer = document.getElementById('messages-container');
+        const welcomeMessage = document.getElementById('welcome-message');
+        const chatInput = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('send-btn');
+        const typingIndicator = document.getElementById('typing-indicator');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        
+        // Upload handlers
+        uploadArea.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => e.target.files[0] && handleFile(e.target.files[0]));
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('drag-over');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag-over'));
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+            if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]);
+        });
+        
+        async function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('Please upload an image file');
+                return;
+            }
+            
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                imagePreview.src = e.target.result;
+                imagePreview.style.display = 'block';
+                uploadArea.classList.add('has-image');
+                
+                // Upload to API
+                loadingOverlay.classList.add('visible');
+                
+                try {
+                    const base64 = e.target.result.split(',')[1];
+                    
+                    const response = await fetch(`${API_BASE}/upload-image`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            session_id: sessionId,
+                            image_data: base64,
+                            image_type: file.type
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        updateMedicineCard(data.medicine_info);
+                        addMessage('assistant', `✅ I've analyzed the medicine image:\n\n**${data.medicine_info.generic_name || 'Unknown'} ${data.medicine_info.strength || ''}** (${data.medicine_info.brand_name || 'Unknown brand'})\n\nYou can now ask me questions about this medicine!`, [], null);
+                    } else {
+                        addMessage('assistant', '❌ Failed to analyze the image. Please try again.', [], null);
+                    }
+                } catch (error) {
+                    console.error('Upload error:', error);
+                    addMessage('assistant', '❌ Error uploading image. Please check your connection.', [], null);
+                } finally {
+                    loadingOverlay.classList.remove('visible');
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function updateMedicineCard(info) {
+            document.getElementById('medicine-name').textContent = info.generic_name || 'Unknown';
+            document.getElementById('medicine-brand').textContent = info.brand_name || 'Unknown';
+            document.getElementById('medicine-strength').textContent = info.strength || '-';
+            document.getElementById('medicine-form').textContent = info.form || '-';
+            document.getElementById('medicine-expiry').textContent = info.expiry_date || '-';
+            document.getElementById('medicine-manufacturer').textContent = info.manufacturer || '-';
+            medicineCard.classList.add('visible');
+        }
+        
+        async function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+            
+            if (welcomeMessage) welcomeMessage.style.display = 'none';
+            
+            addMessage('user', message, [], null);
+            chatInput.value = '';
+            chatInput.style.height = 'auto';
+            
+            typingIndicator.classList.add('visible');
+            sendBtn.disabled = true;
+            scrollToBottom();
+            
+            try {
+                const response = await fetch(`${API_BASE}/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        message: message
+                    })
+                });
+                
+                const data = await response.json();
+                typingIndicator.classList.remove('visible');
+                
+                // Use tools_status if available, fallback to tools_used
+                addMessage('assistant', data.response, data.tools_used || [], data.tools_status || null);
+                
+            } catch (error) {
+                console.error('Chat error:', error);
+                typingIndicator.classList.remove('visible');
+                addMessage('assistant', '❌ Error processing your request. Please try again.', [], null);
+            } finally {
+                sendBtn.disabled = false;
+            }
+        }
+        
+        function addMessage(role, text, toolsUsed, toolsStatus) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.innerHTML = role === 'assistant' 
+                ? '<i data-lucide="bot" style="width: 20px; height: 20px;"></i>'
+                : '<i data-lucide="user" style="width: 20px; height: 20px;"></i>';
+            
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            
+            const textDiv = document.createElement('div');
+            textDiv.className = 'message-text';
+            textDiv.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+            
+            content.appendChild(textDiv);
+            
+            // Show all tool badges with status
+            if (role === 'assistant' && toolsStatus && toolsStatus.length > 0) {
+                const toolsDiv = document.createElement('div');
+                toolsDiv.className = 'tools-used';
+                
+                // Add legend
+                const label = document.createElement('div');
+                label.className = 'tools-label';
+                label.innerHTML = '<span style="color: var(--success);">●</span> Used &nbsp; <span style="color: var(--danger);">●</span> Tried/Failed &nbsp; <span style="color: var(--text-muted);">●</span> Not Used';
+                toolsDiv.appendChild(label);
+                
+                const toolConfig = {
+                    'search_drug_database': { class: 'rag', icon: 'database', name: 'Drug Database' },
+                    'get_fda_adverse_events': { class: 'fda', icon: 'shield-check', name: 'FDA Reports' },
+                    'calculate_dosage': { class: 'dosage', icon: 'calculator', name: 'Dosage Calc' },
+                    'check_medicine_expiry': { class: 'expiry', icon: 'calendar', name: 'Expiry Check' },
+                    'llm_knowledge': { class: 'llm', icon: 'brain', name: 'LLM Knowledge' }
+                };
+                
+                toolsStatus.forEach(tool => {
+                    const config = toolConfig[tool.name] || { class: 'rag', icon: 'tool', name: tool.name };
+                    const badge = document.createElement('span');
+                    
+                    // Determine status class and icon
+                    let statusClass = tool.status || (tool.success ? 'success' : 'failed');
+                    let icon = config.icon;
+                    let prefix = '';
+                    
+                    if (statusClass === 'success') {
+                        prefix = '✓';
+                    } else if (statusClass === 'failed') {
+                        prefix = '✗';
+                        icon = 'x-circle';
+                    } else {
+                        prefix = '○';
+                        icon = 'circle';
+                    }
+                    
+                    badge.className = `tool-badge ${statusClass} ${config.class}`;
+                    badge.innerHTML = `<i data-lucide="${icon}" style="width: 12px; height: 12px;"></i> ${prefix} ${config.name}`;
+                    toolsDiv.appendChild(badge);
+                });
+                
+                content.appendChild(toolsDiv);
+            }
+            // Fallback for old format (backward compatibility)
+            else if (role === 'assistant' && toolsUsed && toolsUsed.length > 0 && !toolsStatus) {
+                const toolsDiv = document.createElement('div');
+                toolsDiv.className = 'tools-used';
+                
+                const toolConfig = {
+                    'search_drug_database': { class: 'rag', icon: 'database', name: 'Drug Database' },
+                    'get_fda_adverse_events': { class: 'fda', icon: 'shield-check', name: 'FDA Reports' },
+                    'calculate_dosage': { class: 'dosage', icon: 'calculator', name: 'Dosage Calc' },
+                    'check_medicine_expiry': { class: 'expiry', icon: 'calendar', name: 'Expiry Check' }
+                };
+                
+                toolsUsed.forEach(tool => {
+                    const config = toolConfig[tool] || { class: 'rag', icon: 'tool', name: tool };
+                    const badge = document.createElement('span');
+                    badge.className = `tool-badge success ${config.class}`;
+                    badge.innerHTML = `<i data-lucide="${config.icon}" style="width: 12px; height: 12px;"></i> ${config.name}`;
+                    toolsDiv.appendChild(badge);
+                });
+                
+                content.appendChild(toolsDiv);
+            }
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(content);
+            messagesContainer.appendChild(messageDiv);
+            
+            lucide.createIcons();
+            scrollToBottom();
+        }
+        
+        function askQuestion(question) {
+            chatInput.value = question;
+            sendMessage();
+        }
+        
+        async function clearChat() {
+            if (!confirm('Clear the conversation?')) return;
+            
+            try {
+                await fetch(`${API_BASE}/clear`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: sessionId })
+                });
+                
+                messagesContainer.innerHTML = '';
+                if (welcomeMessage) {
+                    messagesContainer.appendChild(welcomeMessage);
+                    welcomeMessage.style.display = 'block';
+                }
+                
+                medicineCard.classList.remove('visible');
+                uploadArea.classList.remove('has-image');
+                imagePreview.style.display = 'none';
+                fileInput.value = '';
+            } catch (error) {
+                console.error('Clear error:', error);
+            }
+        }
+        
+        function handleKeyDown(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        }
+        
+        chatInput.addEventListener('input', () => {
+            chatInput.style.height = 'auto';
+            chatInput.style.height = Math.min(chatInput.scrollHeight, 150) + 'px';
+        });
+        
+        function scrollToBottom() {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+    </script>
+</body>
+</html>
